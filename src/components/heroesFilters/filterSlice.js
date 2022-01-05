@@ -1,11 +1,18 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { createSlice, createAsyncThunk, createEntityAdapter } from "@reduxjs/toolkit"
 import { useHttp } from "../../hooks/http.hook"
 
-const initialState = {
-    filters: [],
+const filtersAdapter = createEntityAdapter()
+
+const initialState = filtersAdapter.getInitialState({
     filtersLoadingStatus: 'idle',
     activeFilter: 'all'
-}
+})
+
+// const initialState = {
+//     filters: [],
+    // filtersLoadingStatus: 'idle',
+    // activeFilter: 'all'
+// }
 
 export const filterFetchActive = createAsyncThunk(
     'filters/filterFetchActive',
@@ -19,12 +26,12 @@ const filterSlice = createSlice({
     name: 'filter',
     initialState, 
     reducers: {
-        filtersFetching: state => {state.filtersLoadingStatus = 'loading'},
-        filtersFetched: (state, action) => {
-            state.filtersLoadingStatus = 'idle'
-            state.filters = action.payload
-        },
-        filtersFetchingError: state => {state.filtersLoadingStatus = 'error'},
+        // filtersFetching: state => {state.filtersLoadingStatus = 'loading'},
+        // filtersFetched: (state, action) => {
+        //     state.filtersLoadingStatus = 'idle'
+        //     filtersAdapter(state, action.payload)
+        // },
+        // filtersFetchingError: state => {state.filtersLoadingStatus = 'error'},
         activeFilterChanged: (state, action) => {state.activeFilter = action.payload}
     },
     extraReducers: (builder) => {
@@ -32,7 +39,7 @@ const filterSlice = createSlice({
             .addCase(filterFetchActive.pending, state => {state.filtersLoadingStatus = 'loading'})
             .addCase(filterFetchActive.fulfilled, (state, action) => {
                 state.filtersLoadingStatus = 'idle'
-                state.filters = action.payload
+                filtersAdapter.setAll(state, action.payload)
             })
             .addCase(filterFetchActive.rejected, state => {state.filtersLoadingStatus = 'error'})
             .addDefaultCase(() => {})
@@ -40,6 +47,8 @@ const filterSlice = createSlice({
 })
 
 const {actions, reducer} = filterSlice
+
+export const {selectAll} = filtersAdapter.getSelectors(state => state.filters)
 
 export default reducer
 export const {
